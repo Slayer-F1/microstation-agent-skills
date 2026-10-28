@@ -19,7 +19,7 @@ Status of the facts below: observed on MicroStation 2026 (26.00.02.039). Other v
 - The engineer can open it with *Utilities > Python Editor* (run scripts there), or run a saved file with the key-in:
   `PYTHON LOAD "C:\path\to\script.py"`
 - `print()` goes to MicroStation's Python console.
-- An agent outside MicroStation cannot call the API directly. The agent writes the script; the engineer runs it in MicroStation and pastes the console output back. (A command-line bridge is on this repository's roadmap.)
+- An agent outside MicroStation cannot call the API directly. To run scripts and read results back, follow `microstation-drive` (wrapped jobs, result files). A command-line bridge is on this repository's roadmap.
 
 ## Where things are
 
