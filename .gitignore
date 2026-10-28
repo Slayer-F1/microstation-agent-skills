@@ -1,0 +1,4 @@
+# An organization's own standards are private by default
+/standards/
+__pycache__/
+*.pyc

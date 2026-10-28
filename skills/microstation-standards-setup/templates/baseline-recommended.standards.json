@@ -1,0 +1,65 @@
+{
+  "_help": "RECOMMENDED STARTER, not an official standard. Copy it, delete the disciplines you do not need, change names and colors with the engineer, then validate. Colors are chosen to stay visible on both black and white backgrounds.",
+  "schema_version": "1.0",
+  "organization": {
+    "name": "Example Organization (not a real standard)",
+    "country": "",
+    "region": "",
+    "disciplines": ["general", "roads", "utilities", "buildings", "survey"]
+  },
+  "meta": {
+    "version": "0.1",
+    "status": "draft",
+    "source": "recommended",
+    "approved_by": "",
+    "approved_on": "",
+    "references": []
+  },
+  "units": { "master": "m", "sub": "mm" },
+  "view_background": "black",
+  "level_naming": {
+    "pattern": "^[A-Z]{1,3}(-[A-Z0-9]+)+$",
+    "rule": "DISCIPLINE-ELEMENT[-DETAIL], capital letters and digits, hyphen separated. Discipline codes: G general, RD roads, UT utilities, BL buildings, SV survey."
+  },
+  "levels": [
+    { "name": "G-ANNO-TEXT",      "description": "General notes and labels",        "color": { "rgb": "#808080" }, "style": "0", "weight": 1, "plot": true },
+    { "name": "G-ANNO-DIM",       "description": "Dimensions",                      "color": { "rgb": "#00A000" }, "style": "0", "weight": 1, "plot": true },
+    { "name": "G-TITLEBLOCK",     "description": "Sheet border and title block",    "color": { "rgb": "#808080" }, "style": "0", "weight": 5, "plot": true },
+    { "name": "G-CONSTRUCTION",   "description": "Construction lines, not plotted", "color": { "rgb": "#9040C0" }, "style": "1", "weight": 0, "plot": false },
+    { "name": "RD-CENTERLINE",    "description": "Road centerline",                 "color": { "rgb": "#FF0000" }, "style": "7", "weight": 2, "plot": true },
+    { "name": "RD-EDGE-PAVEMENT", "description": "Edge of pavement",                "color": { "rgb": "#808080" }, "style": "0", "weight": 3, "plot": true },
+    { "name": "RD-KERB",          "description": "Kerb or curb line",               "color": { "rgb": "#E06000" }, "style": "0", "weight": 2, "plot": true },
+    { "name": "RD-MARKING",       "description": "Lane markings",                   "color": { "rgb": "#B08000" }, "style": "3", "weight": 1, "plot": true },
+    { "name": "RD-ROW-BOUNDARY",  "description": "Right-of-way boundary",           "color": { "rgb": "#9040C0" }, "style": "4", "weight": 2, "plot": true },
+    { "name": "UT-DRAIN",         "description": "Storm drainage pipes",            "color": { "rgb": "#3366FF" }, "style": "0", "weight": 2, "plot": true },
+    { "name": "UT-WATER",         "description": "Water mains",                     "color": { "rgb": "#00A0A0" }, "style": "0", "weight": 2, "plot": true },
+    { "name": "UT-SEWER",         "description": "Sewer lines",                     "color": { "rgb": "#A05020" }, "style": "0", "weight": 2, "plot": true },
+    { "name": "UT-POWER",         "description": "Power cables",                    "color": { "rgb": "#FF00FF" }, "style": "5", "weight": 2, "plot": true },
+    { "name": "BL-WALL",          "description": "Walls",                           "color": { "rgb": "#A05020" }, "style": "0", "weight": 4, "plot": true },
+    { "name": "BL-OPENING",       "description": "Doors and windows",               "color": { "rgb": "#3366FF" }, "style": "0", "weight": 1, "plot": true },
+    { "name": "BL-GRID",          "description": "Structural grid",                 "color": { "rgb": "#FF0000" }, "style": "7", "weight": 0, "plot": true },
+    { "name": "BL-FOUNDATION",    "description": "Foundations, hidden below grade", "color": { "rgb": "#9040C0" }, "style": "3", "weight": 3, "plot": true },
+    { "name": "SV-CONTOUR-MINOR", "description": "Minor contours",                  "color": { "rgb": "#A05020" }, "style": "0", "weight": 0, "plot": true },
+    { "name": "SV-CONTOUR-MAJOR", "description": "Major contours",                  "color": { "rgb": "#A05020" }, "style": "0", "weight": 3, "plot": true },
+    { "name": "SV-SPOT-HEIGHT",   "description": "Spot heights",                    "color": { "rgb": "#00A000" }, "style": "0", "weight": 0, "plot": true }
+  ],
+  "text_styles": [
+    { "name": "TXT-NOTE",  "font": "Arial", "height_mm": 2.5 },
+    { "name": "TXT-LABEL", "font": "Arial", "height_mm": 3.5 },
+    { "name": "TXT-TITLE", "font": "Arial", "height_mm": 5.0 }
+  ],
+  "dimension_styles": [
+    { "name": "DIM-STD", "text_style": "TXT-NOTE", "units": "m", "precision": 2 }
+  ],
+  "line_styles": [
+    { "name": "0", "kind": "builtin", "description": "Solid" },
+    { "name": "3", "kind": "builtin", "description": "Dashed (confirm the name in your MicroStation install)" },
+    { "name": "7", "kind": "builtin", "description": "Center-line pattern (confirm in your install)" }
+  ],
+  "cell_libraries": [],
+  "sheets": [
+    { "name": "A1", "width_mm": 841, "height_mm": 594, "scales": ["1:50", "1:100", "1:200", "1:500", "1:1000"] },
+    { "name": "A3", "width_mm": 420, "height_mm": 297, "scales": ["1:50", "1:100", "1:200", "1:500"] }
+  ],
+  "seed_file": ""
+}
