@@ -7,7 +7,7 @@ description: Use when the task is to actually DO something in MicroStation (read
 
 Read `microstation-scripting` first (Python facts, import order, safety). If there is no approved standard and the task depends on one, run `microstation-standards-setup` first.
 
-Status: the pieces below were observed working on MicroStation 2026 (26.00.02.039) in an earlier study (Python Editor plus a loader line, scripts run in-process, key-ins sent from Python). The **whole loop together** is not yet proven end to end. Run the smoke test first, every time.
+Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Real work (levels, elements, key-ins) through this loop is **not yet proven**. Run the smoke test first, every time.
 
 ## The loop
 
@@ -30,10 +30,8 @@ Wrap `templates/smoke_body.py` and run it. Expected result: `ok: true`, `result:
 
 **A. You can control the Windows desktop** (Claude Code desktop computer-use, UI Automation, or similar):
 1. Open MicroStation on a copy of the drawing.
-2. *Utilities > Python Editor*. Use *New*; it pre-fills the six imports.
-3. Replace the document with one line that runs the job file, then Run:
-   `exec(open(r"<full path to jobs/<id>.py>", encoding="utf-8").read())`
-   (The earlier study used a one-line loader call. This exact line is a suggestion; the smoke test proves it.)
+2. *Utilities > Python Editor* (Utilities ribbon tab, Python Editor button).
+3. Click the *Open* folder icon (tooltip "Open a Python project from disk"), type the full path of `jobs/<id>.py` in the File name box, press Enter. Then click *Run Python File* (the Python icon right of the save icons). The status bar says "The Python script runs to completion". Do not use *New*: it asks for a save path first. The job already contains the six imports.
 4. Do not type into the Key-in window with simulated keystrokes. Posted characters did nothing there in earlier tests. Use the Python Editor.
 5. Do not touch an engineer's own working session without asking. Prefer a separate MicroStation instance on a copy.
 
