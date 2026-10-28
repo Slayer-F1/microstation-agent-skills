@@ -7,7 +7,7 @@ description: Use when the task is to actually DO something in MicroStation (read
 
 Read `microstation-scripting` first (Python facts, import order, safety). If there is no approved standard and the task depends on one, run `microstation-standards-setup` first.
 
-Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Real work (levels, elements, key-ins) through this loop is **not yet proven**. Run the smoke test first, every time.
+Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Changing the drawing, elements and key-ins through this loop are **not yet proven**. Run the smoke test first, every time.
 
 ## The loop
 
@@ -26,10 +26,18 @@ Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.0
 
 Wrap `templates/smoke_body.py` and run it. Expected result: `ok: true`, `result: {"sum": 4}`. If this fails, stop and fix the route. Do not try real work.
 
+## Example: read the levels (read-only, tested)
+
+Wrap `templates/list_levels_body.py`. It lists every level in the active file: id, code, name, description, color index, weight, line style code, display, frozen, plot.
+
+Tested on 2026-10-28 on a test copy: result `count: 2`, `count_with_libraries: 7`. Level Manager showed the same 7. **`count` is the levels stored in the file; the rest come from attached level libraries (DGNLIB).** Report both numbers, do not call 2 "all levels".
+
+Raw values not decoded yet: `color_index` is a color-table index (one level returned 19232, which is not a plain 0-255 index) and `style` -1 is unexplained. Do not turn them into RGB or names without checking.
+
 ## How to run it - pick by the tools you have
 
 **A. You can control the Windows desktop** (Claude Code desktop computer-use, UI Automation, or similar):
-1. Open MicroStation on a copy of the drawing.
+1. Open MicroStation on a copy of the drawing. Do not use a launcher tool to "bring MicroStation forward": each call starts a new empty MicroStation instance, and clicks and typing land in it. Check `Get-Process microstation` first and drive the instance whose window title shows the drawing.
 2. *Utilities > Python Editor* (Utilities ribbon tab, Python Editor button).
 3. Click the *Open* folder icon (tooltip "Open a Python project from disk"), type the full path of `jobs/<id>.py` in the File name box, press Enter. Then click *Run Python File* (the Python icon right of the save icons). The status bar says "The Python script runs to completion". Do not use *New*: it asks for a save path first. The job already contains the six imports.
 4. Do not type into the Key-in window with simulated keystrokes. Posted characters did nothing there in earlier tests. Use the Python Editor.
