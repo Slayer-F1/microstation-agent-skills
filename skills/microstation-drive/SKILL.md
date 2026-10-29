@@ -61,7 +61,7 @@ Tested on 2026-10-29 on a throwaway copy, three separate no-click launches:
 Second test, same day, on a fresh throwaway copy, three no-click launches (100 elements, place, then 106). The spec had all six types:
 - **Arc** (type 16): range 1 to 9 by 33 to 37 as specified, colour 3, weight 4.
 - **Text** (type 17): the string `AGENT TEST` read back, colour 5. Its range is 8.7 wide and 2.0 tall for a requested character height of 1, and the origin is inside it. The range is more than the letters, so do not use it to check text size or position yet.
-- **Cell** (type 2): name `AGENT-CELL`, range 0 to 8 by 45 to 49 as specified, two child lines on the test level with weight 2. **The cell header itself is on level 0, not on the test level**, although the template asked for the test level. Level, colour and weight stick on the child lines. If the standard needs the header on a level, that is untested.
+- **Cell** (type 2): name `AGENT-CELL`, range 0 to 8 by 45 to 49 as specified, two child lines on the test level with weight 2. **The cell header itself stays on level 0**, although the template asked for the test level. Level, colour and weight stick on the child lines. Six ways to move the header were tried on a fresh copy (the level setter before and after `AddChildComplete`; after `AddToModel` with `ReplaceInModel`; with `SetChangeEntireElement`; writing `GetElement().ehdr.level` before and after adding). The header read level 0 every time, checked three ways (element ref, property getter, raw header). So treat the header level as not settable here and put the standard's level on the child lines. Whether level display and level locks go by the children was not tested.
 - Line, shape and box with no colour or weight given read back colour 0, weight 0. Treat that as "not set".
 
 Rules this showed:
@@ -87,7 +87,7 @@ Rules this showed:
      ```
   3. Wait for `results/<id>.json` (16 to 20 seconds in the tests). MicroStation then closes itself.
 - **Tested on a throwaway copy:** smoke job (`sum: 4`); read levels (2 in file, 7 with libraries, same as the Python Editor route); create a level, `exit`, then a fresh launch whose remove job found the level (so the change survived the close) and removed it.
-- **Limits:** each launch is a new MicroStation, so do not aim it at a file already open in the engineer's session (not tested, expect a file lock). One launch per job. `exit` rewrites the DGN like any close. Not tested: sites that need a workspace or project on the command line (`-wu -ws -wp`), very large files, what `exit` does after a failed job or with unsaved changes, licence or start-up dialogs.
+- **Limits:** each launch is a new MicroStation, so do not aim it at a file already open in the engineer's session (not tested, expect a file lock). One launch per job. `exit` rewrites the DGN like any close. After every job check `Get-Process microstation`: one job that wrote `GetElement().ehdr.level` and then called `ReplaceInModel` finished and wrote its result, but left a windowless MicroStation running after `exit`. Stop only instances you started. Not tested: sites that need a workspace or project on the command line (`-wu -ws -wp`), very large files, what `exit` does after a failed job or with unsaved changes, licence or start-up dialogs.
 - Bentley's own help documents the start-up script setting (Preferences, Operation category) and the `Python Load` key-in (Python config variables topic).
 
 **A. You can control the Windows desktop** (Claude Code desktop computer-use, UI Automation, or similar):

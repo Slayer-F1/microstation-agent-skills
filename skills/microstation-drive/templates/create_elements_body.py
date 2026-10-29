@@ -78,7 +78,7 @@ def build(item):
         if TextElemHandler.CreateElement(eeh, None, block) != TextBlockToElementResult.eTEXTBLOCK_TO_ELEMENT_RESULT_Success:
             raise RuntimeError("text create failed")
         status = BentleyStatus.eSUCCESS
-    elif kind == "cell":  # an unshared cell built from lines; level, color and weight go on every child
+    elif kind == "cell":  # an unshared cell built from lines; level, color and weight go on every child. The header stays on level 0 (six ways tried, see SKILL.md)
         NormalCellHeaderHandler.CreateOrphanCellElement(eeh, item["name"], is3d, model)
         for a, b in item["lines"]:
             child = EditElementHandle()
