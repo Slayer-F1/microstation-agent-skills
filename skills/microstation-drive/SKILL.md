@@ -7,7 +7,7 @@ description: Use when the task is to actually DO something in MicroStation (read
 
 Read `microstation-scripting` first (Python facts, import order, safety). If there is no approved standard and the task depends on one, run `microstation-standards-setup` first.
 
-Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Running a job with **no clicks at all** (launch, run, result file, exit) was tested on 2026-10-29 (route 0 below). Other changes (elements, styles, key-ins) are **not yet proven**. Run the smoke test first, every time.
+Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Running a job with **no clicks at all** (launch, run, result file, exit) was tested on 2026-10-29 (route 0 below). Placing a line, a shape and a box from a spec was tested on 2026-10-29 (below). Other changes (text, dimensions, styles, references, key-ins) are **not yet proven**. Run the smoke test first, every time.
 
 ## The loop
 
@@ -48,6 +48,22 @@ Rules this showed:
 - **Always `cache.Write()` after a level change, then read back with a separate read job.** Do not trust the change job's own readback alone.
 - **Closing a DGN rewrites it, even if you only read it.** The original test file changed size and time when MicroStation closed it. Work on a copy and treat the original as touched the moment you open it. Copy first (`Copy-Item`), open the copy by File > Open, and check the window title before running a change job.
 - Only weight and color index were set and checked. RGB colors, line styles and descriptions are untested. `CreateLevel` returns an invalid handle for a duplicate or invalid name.
+
+## Example: place elements from a spec (changes the file, tested)
+
+Templates: `templates/create_elements_body.py` (edit `SPEC`, a list of `line`, `shape` and `box` items in **master units**; places them on level `ZZ-AGENT-TEST`, creating the level if missing) and `templates/list_elements_body.py` (read-only: counts by level and element type, plus id, type and range of each element on one level).
+
+Tested on 2026-10-29 on a throwaway copy, three separate no-click launches:
+1. before: 100 elements, none on the test level.
+2. place: line, shape and box all `ok`.
+3. fresh read after MicroStation had closed: 103 elements. The three are on the test level as type 3 (line), 6 (shape) and 19 (solid). Their ranges match the spec exactly: line 0 to 10 along x, shape 0 to 10 by 5 to 15, box 0 to 10 by 22 to 28 by 0 to 3.
+
+Rules this showed:
+- The spec is in master units. The template converts to UORs (10000 per master unit in the test file). Never pass raw UORs.
+- No explicit save call was needed. The test used MicroStation's default *Auto-save Design Changes* preference (on). Check it before trusting this on another machine.
+- Always read back with a separate read job and compare the ranges to the spec, not just the count.
+- Only line, shape and box were tested. Bentley's sample `C:\ProgramData\Bentley\PowerPlatformPython\Examples\Microstation\DgnElements\CreateElements.py` shows 36 element types (arcs, text, cells, dimensions, other solids); none of those are tested here. Colour, weight and line style were not set or checked.
+- There is no template to delete elements. Leave test elements on the copy and discard the copy. The remove-level template refuses a level that still has elements.
 
 ## How to run it - pick by the tools you have
 
