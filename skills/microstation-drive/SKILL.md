@@ -7,7 +7,7 @@ description: Use when the task is to actually DO something in MicroStation (read
 
 Read `microstation-scripting` first (Python facts, import order, safety). If there is no approved standard and the task depends on one, run `microstation-standards-setup` first.
 
-Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Running a job with **no clicks at all** (launch, run, result file, exit) was tested on 2026-10-29 (route 0 below). Placing a line, a shape and a box from a spec was tested on 2026-10-29 (below). Other changes (text, dimensions, styles, references, key-ins) are **not yet proven**. Run the smoke test first, every time.
+Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Running a job with **no clicks at all** (launch, run, result file, exit) was tested on 2026-10-29 (route 0 below). Placing a line, a shape, a box, an arc, text and a cell from a spec, with colour and weight, was tested on 2026-10-29 (below). Other changes (dimensions, styles, references, key-ins) are **not yet proven**. Run the smoke test first, every time.
 
 ## The loop
 
@@ -51,18 +51,24 @@ Rules this showed:
 
 ## Example: place elements from a spec (changes the file, tested)
 
-Templates: `templates/create_elements_body.py` (edit `SPEC`, a list of `line`, `shape` and `box` items in **master units**; places them on level `ZZ-AGENT-TEST`, creating the level if missing) and `templates/list_elements_body.py` (read-only: counts by level and element type, plus id, type and range of each element on one level).
+Templates: `templates/create_elements_body.py` (edit `SPEC`, a list of `line`, `shape`, `box`, `arc`, `text` and `cell` items in **master units**, each with an optional `color` index and `weight`; places them on level `ZZ-AGENT-TEST`, creating the level if missing) and `templates/list_elements_body.py` (read-only: counts by level and element type, plus id, type, range, colour and weight of each element on one level, the string of text elements, and the name, header level and child lines of cells).
 
 Tested on 2026-10-29 on a throwaway copy, three separate no-click launches:
 1. before: 100 elements, none on the test level.
 2. place: line, shape and box all `ok`.
 3. fresh read after MicroStation had closed: 103 elements. The three are on the test level as type 3 (line), 6 (shape) and 19 (solid). Their ranges match the spec exactly: line 0 to 10 along x, shape 0 to 10 by 5 to 15, box 0 to 10 by 22 to 28 by 0 to 3.
 
+Second test, same day, on a fresh throwaway copy, three no-click launches (100 elements, place, then 106). The spec had all six types:
+- **Arc** (type 16): range 1 to 9 by 33 to 37 as specified, colour 3, weight 4.
+- **Text** (type 17): the string `AGENT TEST` read back, colour 5. Its range is 8.7 wide and 2.0 tall for a requested character height of 1, and the origin is inside it. The range is more than the letters, so do not use it to check text size or position yet.
+- **Cell** (type 2): name `AGENT-CELL`, range 0 to 8 by 45 to 49 as specified, two child lines on the test level with weight 2. **The cell header itself is on level 0, not on the test level**, although the template asked for the test level. Level, colour and weight stick on the child lines. If the standard needs the header on a level, that is untested.
+- Line, shape and box with no colour or weight given read back colour 0, weight 0. Treat that as "not set".
+
 Rules this showed:
 - The spec is in master units. The template converts to UORs (10000 per master unit in the test file). Never pass raw UORs.
 - No explicit save call was needed. The test used MicroStation's default *Auto-save Design Changes* preference (on). Check it before trusting this on another machine.
 - Always read back with a separate read job and compare the ranges to the spec, not just the count.
-- Only line, shape and box were tested. Bentley's sample `C:\ProgramData\Bentley\PowerPlatformPython\Examples\Microstation\DgnElements\CreateElements.py` shows 36 element types (arcs, text, cells, dimensions, other solids); none of those are tested here. Colour, weight and line style were not set or checked.
+- Tested: line, shape, box, arc, text, a cell made of lines, colour index and weight. Bentley's sample `C:\ProgramData\Bentley\PowerPlatformPython\Examples\Microstation\DgnElements\CreateElements.py` shows 36 element types; the rest (ellipses, dimensions, shared cells, B-splines, text tables, other solids) are untested here. Line style, RGB colour and text style were not set or checked. Text uses the default TrueType font.
 - There is no template to delete elements. Leave test elements on the copy and discard the copy. The remove-level template refuses a level that still has elements.
 
 ## How to run it - pick by the tools you have

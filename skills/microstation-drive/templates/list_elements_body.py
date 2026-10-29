@@ -16,8 +16,8 @@ for ref in dgn_model.GetGraphicElements():
     name = names.get(ref.GetLevel(), "id" + str(ref.GetLevel()))
     key = name + " | type " + str(ref.GetElementType())
     counts[key] = counts.get(key, 0) + 1
-    if LEVEL and name == LEVEL:
-        item = {"id": ref.GetElementId(), "type": ref.GetElementType()}
+    if LEVEL and (name == LEVEL or ref.GetElementType() == 2):  # cell headers are listed on any level
+        item = {"id": ref.GetElementId(), "type": ref.GetElementType(), "level": name}
         try:
             eeh = EditElementHandle(ref, dgn_model)
             rng = DRange3d()
@@ -26,6 +26,23 @@ for ref in dgn_model.GetGraphicElements():
                                     [round(c / uor, 3) for c in (rng.high.x, rng.high.y, rng.high.z)]]
         except Exception as ex:
             item["range_error"] = str(ex)
+        try:
+            getter = ElementPropertiesGetter(eeh)
+            item["color"] = getter.GetColor()
+            item["weight"] = getter.GetWeight()
+            if ref.GetElementType() == 17:  # text
+                item["text"] = TextHandlerBase.GetFirstTextPartValue(eeh).ToString()
+            elif ref.GetElementType() == 2:  # cell header
+                item["cell_name"] = NormalCellHeaderHandler.GetInstance().ExtractName(eeh)[1]
+                item["children"] = []
+                child = ChildElemIter(eeh, ExposeChildrenReason.eQuery)
+                while child.IsValid():
+                    cg = ElementPropertiesGetter(child)
+                    item["children"].append({"type": child.GetElementType(), "level": names.get(cg.GetLevel(), "id" + str(cg.GetLevel())),
+                                             "color": cg.GetColor(), "weight": cg.GetWeight()})
+                    child = child.ToNext()
+        except Exception as ex:
+            item["props_error"] = str(ex)
         on_level.append(item)
 
 result = {"file": str(dgn_model.GetDgnFile().GetFileName()), "total_graphic_elements": total,
