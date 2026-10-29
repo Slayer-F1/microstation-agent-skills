@@ -7,7 +7,7 @@ description: Use when the task is to actually DO something in MicroStation (read
 
 Read `microstation-scripting` first (Python facts, import order, safety). If there is no approved standard and the task depends on one, run `microstation-standards-setup` first.
 
-Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Other changes (elements, styles, key-ins) are **not yet proven**. Run the smoke test first, every time.
+Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Running a job with **no clicks at all** (launch, run, result file, exit) was tested on 2026-10-29 (route 0 below). Other changes (elements, styles, key-ins) are **not yet proven**. Run the smoke test first, every time.
 
 ## The loop
 
@@ -51,6 +51,23 @@ Rules this showed:
 
 ## How to run it - pick by the tools you have
 
+**0. No-click launch (tested 2026-10-29, use this first).** Needs only a shell. MicroStation can replay a text file of key-ins at start-up, and the key-in `Python Load` runs a Python file.
+- **One-time setup per user:** *File > Settings > User > Preferences > Operation > Command Line > Execute Startup Script*: tick it, press OK. It is off by default, and while it is off the `-s` file is ignored. This changes the engineer's preference, so tell them.
+- **Per job:**
+  1. Write `jobs/<id>.cmd.txt` as plain ASCII, no BOM, two lines. The quotes matter when the path has spaces. Leave out `exit` only if you want MicroStation to stay open.
+     ```
+     python load "C:\full\path\jobs\<id>.py"
+     exit
+     ```
+  2. Launch (PowerShell), on a copy of the drawing:
+     ```
+     Start-Process 'C:\Program Files\Bentley\MicroStation 2026\MicroStation\microstation.exe' -ArgumentList ('-s"{0}" "{1}"' -f $cmdFile, $dgnCopy)
+     ```
+  3. Wait for `results/<id>.json` (16 to 20 seconds in the tests). MicroStation then closes itself.
+- **Tested on a throwaway copy:** smoke job (`sum: 4`); read levels (2 in file, 7 with libraries, same as the Python Editor route); create a level, `exit`, then a fresh launch whose remove job found the level (so the change survived the close) and removed it.
+- **Limits:** each launch is a new MicroStation, so do not aim it at a file already open in the engineer's session (not tested, expect a file lock). One launch per job. `exit` rewrites the DGN like any close. Not tested: sites that need a workspace or project on the command line (`-wu -ws -wp`), very large files, what `exit` does after a failed job or with unsaved changes, licence or start-up dialogs.
+- Bentley's own help documents the start-up script setting (Preferences, Operation category) and the `Python Load` key-in (Python config variables topic).
+
 **A. You can control the Windows desktop** (Claude Code desktop computer-use, UI Automation, or similar):
 1. Open MicroStation on a copy of the drawing. Do not use a launcher tool to "bring MicroStation forward": each call starts a new empty MicroStation instance, and clicks and typing land in it. Check `Get-Process microstation` first and drive the instance whose window title shows the drawing. If another app (a game, a launcher) steals the foreground, the tool will refuse to type; bring MicroStation back with `(New-Object -ComObject WScript.Shell).AppActivate(<its PID>)`, not by launching it again.
 2. *Utilities > Python Editor* (Utilities ribbon tab, Python Editor button).
@@ -62,7 +79,7 @@ Rules this showed:
 
 **C. Same key-ins on many files:** MicroStation's *Batch Process* replays the key-ins of a text command file on each file in a list (text after `#` is a comment), and logs to the file named by `MS_BATCHPROCESS_LOGFILE`. Use it for pure key-in work across many drawings. Test on two copies first.
 
-**D. Fully hands-off (planned):** a Rust command-line tool, MCP server and API in this project's roadmap will run jobs without any clicking. Until it exists, A or B applies.
+**D. One-command wrapper (planned):** a command-line tool, MCP server and API in this project's roadmap will wrap route 0 (write files, launch, wait, read) into a single call. Until it exists, use 0, then A or B.
 
 ## Hard rules
 
