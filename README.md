@@ -11,7 +11,7 @@ Early version. Built for civil and government work: roads, buildings, utilities,
 | [`microstation-standards-setup`](skills/microstation-standards-setup/SKILL.md) | **Start here.** Creates the organization's approved CAD standard in one of three ways: research it online, get a recommended starter, or define it by hand. Includes a validator. |
 | [`microstation-scripting`](skills/microstation-scripting/SKILL.md) | How to drive MicroStation's built-in Python safely. |
 | [`microstation-engineer`](skills/microstation-engineer/SKILL.md) | Front door. The working order for an engineer's request (understand, standard, plan, confirm, run, verify, report) and which skill or template to use. |
-| [`microstation-drive`](skills/microstation-drive/SKILL.md) | Lets the agent actually run work in MicroStation: wrap code as a job, run it, read the result file back. Tested templates place and edit elements, print PDF and attach references. |
+| [`microstation-drive`](skills/microstation-drive/SKILL.md) | Lets the agent actually run work in MicroStation: wrap code as a job, run it, read the result file back. Tested templates place and edit elements (lines, arcs, curves, road chains, text, tables, shared cells, dimensions, with level, colour, weight and line style), print a PDF at an exact scale on a chosen paper size, and attach references. |
 | [`microstation-apply-standards`](skills/microstation-apply-standards/SKILL.md) | Audit and fix drawings against the approved standard, and lock the standard for the whole team. |
 
 ## Install
