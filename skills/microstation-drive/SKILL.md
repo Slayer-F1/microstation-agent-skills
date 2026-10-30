@@ -7,7 +7,7 @@ description: Use when the task is to actually DO something in MicroStation (read
 
 Read `microstation-scripting` first (Python facts, import order, safety). If there is no approved standard and the task depends on one, run `microstation-standards-setup` first.
 
-Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Running a job with **no clicks at all** (launch, run, result file, exit) was tested on 2026-10-29 (route 0 below). Placing a line, a shape, a box, an arc, text and a cell from a spec, with colour and weight, was tested on 2026-10-29 (below). Other changes (dimensions, styles, references, key-ins) are **not yet proven**. Run the smoke test first, every time.
+Status: the smoke test below was run end to end on MicroStation 2026 (26.00.02.039) on 2026-10-28: job file opened in the Python Editor, run, result file read back with `ok: true` and `sum: 4`. Reading levels through the loop was also checked against Level Manager (see below). Creating and removing a level was tested too (below). Running a job with **no clicks at all** (launch, run, result file, exit) was tested on 2026-10-29 (route 0 below). Placing a line, a shape, a box, an arc, text, a cell, a circle, an ellipse, a polyline and a dimension from a spec, with colour and weight, was tested on 2026-10-29. So were editing what is already there (move, copy, rotate, scale, restyle, delete), printing to PDF, and attaching and detaching reference files (all below). Styles, line styles, key-ins and other element types are **not yet proven**. Run the smoke test first, every time.
 
 ## The loop
 
@@ -51,7 +51,7 @@ Rules this showed:
 
 ## Example: place elements from a spec (changes the file, tested)
 
-Templates: `templates/create_elements_body.py` (edit `SPEC`, a list of `line`, `shape`, `box`, `arc`, `text` and `cell` items in **master units**, each with an optional `color` index and `weight`; places them on level `ZZ-AGENT-TEST`, creating the level if missing) and `templates/list_elements_body.py` (read-only: counts by level and element type, plus id, type, range, colour and weight of each element on one level, the string of text elements, and the name, header level and child lines of cells).
+Templates: `templates/create_elements_body.py` (edit `SPEC`, a list of `line`, `shape`, `box`, `arc`, `circle` (`r`), `ellipse` (`rx`, `ry`), `polyline`, `dimension` (`points`, `offset`), `text` and `cell` items in **master units**, each with an optional `color` index and `weight`; places them on level `ZZ-AGENT-TEST`, creating the level if missing) and `templates/list_elements_body.py` (read-only: counts by level and element type, plus id, type, range, colour and weight of each element on one level, the string of text elements, and the name, header level and child lines of cells).
 
 Tested on 2026-10-29 on a throwaway copy, three separate no-click launches:
 1. before: 100 elements, none on the test level.
@@ -68,8 +68,35 @@ Rules this showed:
 - The spec is in master units. The template converts to UORs (10000 per master unit in the test file). Never pass raw UORs.
 - No explicit save call was needed. The test used MicroStation's default *Auto-save Design Changes* preference (on). Check it before trusting this on another machine.
 - Always read back with a separate read job and compare the ranges to the spec, not just the count.
-- Tested: line, shape, box, arc, text, a cell made of lines, colour index and weight. Bentley's sample `C:\ProgramData\Bentley\PowerPlatformPython\Examples\Microstation\DgnElements\CreateElements.py` shows 36 element types; the rest (ellipses, dimensions, shared cells, B-splines, text tables, other solids) are untested here. Line style, RGB colour and text style were not set or checked. Text uses the default TrueType font.
-- There is no template to delete elements. Leave test elements on the copy and discard the copy. The remove-level template refuses a level that still has elements.
+- Tested: line, shape, box, arc, text, a cell made of lines, colour index and weight. Third test, same day: **circle and ellipse** (type 15, ranges exact, colour and weight read back), **polyline** (type 4, range exact, colour read back), **linear dimension** (type 33, `points` = two points, `offset` in master units; a positive offset puts the dimension line to the left of the direction first point to second point; the range 0 to 10 by -5 to -3 matched, colour read back). The range of a dimension does not include its text. Bentley's sample `C:\ProgramData\Bentley\PowerPlatformPython\Examples\Microstation\DgnElements\CreateElements.py` shows 36 element types; the rest (shared cells, B-splines, text tables, other solids, angular and radial dimensions) are untested here. Line style, RGB colour and text style were not set or checked. Text uses the default TrueType font.
+- To change or delete what is already in the file, use the modify template (next section). Remove-level still refuses a level that has elements.
+
+## Example: change what is already there (changes the file, tested)
+
+Template: `templates/modify_elements_body.py`. Edit `OPS`: each op has a `select` and one action. Pick elements with `select` = `ids` (from a list job), `level` (name), or `cell` (a cell name), and narrow with `types` (type codes: 2 cell, 3 line, 4 polyline, 6 shape, 15 ellipse or circle, 16 arc, 17 text, 19 solid, 33 dimension). Actions, distances in master units: `move` (`by`), `copy` (`by`; the copy gets a new id, returned as `new_id`), `rotate` (`about` point, `deg` counter-clockwise), `scale` (`about` point, `factor`), `props` (`level`, `color`, `weight`), `delete`.
+
+**Safety.** `expect` is the number of elements you think match. If the count differs, the op does nothing and reports `expected N, found M`. A `delete` without `expect` is refused. Ask the engineer before a delete and show them the matched ids first (run a list job).
+
+Tested on 2026-10-29 on a fresh throwaway copy, three no-click launches (create 6 elements, modify, read; 100 to 106 elements, as expected). The read job ran after MicroStation had closed, so the changes were saved:
+- **move** a line by 2: range 0 to 10 became 2 to 12. **copy** a shape by 20: the copy 20 to 30, original untouched. **rotate** an arc 90 degrees about its centre: 1 to 9 by 33 to 37 became 3 to 7 by 31 to 39. **scale** a box by 2 about a point: 0 to 10 by 22 to 28 by 0 to 3 became -5 to 15 by 19 to 31 by 0 to 6. All exact.
+- **delete** a cell by name: gone. A level-based delete of the same cell matched 0 elements, because **a cell header sits on level 0**: select cells with `cell`.
+- **props**: colour and weight changed on line, polyline, ellipse, solid and shape. **Text takes the colour but ignores the weight** (it reads back 0). The first version failed on text with status 32768; the fix is to keep `old = eeh.GetElementRef()` before the change and call `ReplaceInModel(old)`. Do not use `SetChangeEntireElement` for this (did nothing on text).
+- Guards: wrong count refused, delete without `expect` refused, an op that fails does not stop the next one.
+- Not tested: edits to elements inside a cell, shared cells, elements in references, mirror, offset, arrays, undo (there is none: work on a copy).
+
+## Example: print to PDF (tested)
+
+Template: `templates/plot_pdf_body.py` (read-only for the drawing; writes `results\plot.pdf`). It uses MicroStation's own PDF driver (`pdf.pltcfg`, shipped with the product) through `PrintDescriptionRef`, as in Bentley's `Plot\Pdf\PdfPlot.py`.
+
+Tested 2026-10-29: `print_status: 0`, a 58 KB file in about 24 seconds, one page showing the building in view 1. Rules it showed:
+- **The area printed is what view 1 shows.** Adding `SetFenceFromFitRange(True)` gave a blank page, so it is not in the template. To print another view or area, change the view first (untested).
+- The licence on this machine is an academic one: every page carries "[Academic use only]". Tell the engineer; it is not a bug.
+- Open the PDF and look at it before you say it worked. The file existing is not enough (the blank version was a valid 19 KB PDF too).
+- Paper size, scale, sheet models and plot styles (pen tables) were not set or tested.
+
+## Example: reference files (tested)
+
+Template: `templates/references_body.py`. Set `ACTION` to `list`, `attach` or `detach`, and `FILE` to the full path. Tested 2026-10-29 on a throwaway copy: attach returned `status: 0` and the list showed the file (model "3D Metric Design", displayed); after MicroStation closed and a new launch, the list still showed it; detach returned `status: 0` and the list was empty. Not tested: nested references, a model other than the default, clipping, scale or rotation of the attachment (the sample shows `SetRotMatrix`), live references that the engineer has open.
 
 ## How to run it - pick by the tools you have
 
@@ -87,7 +114,8 @@ Rules this showed:
      ```
   3. Wait for `results/<id>.json` (16 to 20 seconds in the tests). MicroStation then closes itself.
 - **Tested on a throwaway copy:** smoke job (`sum: 4`); read levels (2 in file, 7 with libraries, same as the Python Editor route); create a level, `exit`, then a fresh launch whose remove job found the level (so the change survived the close) and removed it.
-- **Limits:** each launch is a new MicroStation, so do not aim it at a file already open in the engineer's session (not tested, expect a file lock). One launch per job. `exit` rewrites the DGN like any close. After every job check `Get-Process microstation`: one job that wrote `GetElement().ehdr.level` and then called `ReplaceInModel` finished and wrote its result, but left a windowless MicroStation running after `exit`. Stop only instances you started. Not tested: sites that need a workspace or project on the command line (`-wu -ws -wp`), very large files, what `exit` does after a failed job or with unsaved changes, licence or start-up dialogs.
+- **Limits:** each launch is a new MicroStation, so do not aim it at a file already open in the engineer's session (not tested, expect a file lock). A job takes 18 to 35 seconds start to finish in the tests. **Two launches at the same time, on two different copies, both worked** (read-levels job, 26 seconds in total, same result as a single run, 2026-10-29). More than two, and how many licence seats an instance uses, were not checked.
+- **Licence:** use route 0 on the engineer's own machine, under their own licence, while they are signed in. Bentley's EULA (version 2023-10-16) bars use "in an automated, unattended, non-interactive server application" (section 21), commercial hosting (section 5) and licence pooling (section 6). Do not run it as a server or for other people. Have the terms checked by a lawyer, or ask Bentley, before anyone sells a service built on it. One launch per job. `exit` rewrites the DGN like any close. After every job check `Get-Process microstation`: one job that wrote `GetElement().ehdr.level` and then called `ReplaceInModel` finished and wrote its result, but left a windowless MicroStation running after `exit`. Stop only instances you started. Not tested: sites that need a workspace or project on the command line (`-wu -ws -wp`), very large files, what `exit` does after a failed job or with unsaved changes, licence or start-up dialogs.
 - Bentley's own help documents the start-up script setting (Preferences, Operation category) and the `Python Load` key-in (Python config variables topic).
 
 **A. You can control the Windows desktop** (Claude Code desktop computer-use, UI Automation, or similar):
